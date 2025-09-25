@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>서울 맥도날드 위치 지도</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <style>
+        /* 지도가 표시될 div의 스타일 */
+        #map {
+            height: 100vh;
+            width: 100%;
+        }
+        body {
+            margin: 0;
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script>
+        // 1. 지도 생성 및 초기 설정
+        const map = L.map('map', { zoomControl: false }).setView([37.5665, 126.9780], 12);
+
+        // 2. 지도 타일 디자인 설정 (다크 모드)
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+            subdomains: 'abcd'
+        }).addTo(map);
+
+        // 3. 맥도날드 로고 아이콘 정의
+        const mcDonaldsLogoIcon = new L.Icon({
+            iconUrl: 'mcdonalds_logo.jpg',
+            iconSize: [40, 40],
+            iconAnchor: [20, 40],
+            popupAnchor: [0, -40]
+        });
+        
+        // 4. 사용자 위치 아이콘 정의 (파란색 막대사탕 모양)
+        const userLocationIcon = new L.Icon({
+            iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
+            shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+            iconSize: [25, 41],
+            iconAnchor: [12, 41],
+            popupAnchor: [1, -34],
+            shadowSize: [41, 41]
+        });
+
+        // 5. 서울 맥도날드 전체 지점 데이터
+        const mcDonaldsLocations = [
+            { "name": "맥도날드 가락DT점", "lat": 37.4939, "lng": 127.1265 },
+            { "name": "맥도날드 가산디지털점", "lat": 37.4788, "lng": 126.8837 },
+            { "name": "맥도날드 강남점", "lat": 37.5008, "lng": 127.0267 },
+            { "name": "맥도날드 강동구청점", "lat": 37.5304, "lng": 127.1205 },
+            { "name": "맥도날드 강변DT점", "lat": 37.5348, "lng": 127.0984 },
+            { "name": "맥도날드 개포동점", "lat": 37.4795, "lng": 127.0504 },
+            { "name": "맥도날드 고덕점", "lat": 37.5539, "lng": 127.1511 },
+            { "name": "맥도날드 광장점", "lat": 37.5501, "lng": 127.0863 },
+            { "name": "맥도날드 교대점", "lat": 37.4913, "lng": 127.0142 },
+            { "name": "맥도날드 구로디지털점", "lat": 37.4851, "lng": 126.9038 },
+            { "name": "맥도날드 구로점", "lat": 37.4920, "lng": 126.8821 },
+            { "name": "맥도날드 군자점", "lat": 37.5574, "lng": 127.0818 },
+            { "name": "맥도날드 길동점", "lat": 37.5385, "lng": 127.1352 },
+            { "name": "맥도날드 김포공항DT점", "lat": 37.5583, "lng": 126.8043 },
+            { "name": "맥도날드 남부터미널점", "lat": 37.4839, "lng": 127.0163 },
+            { "name": "맥도날드 남부터미널DT점", "lat": 37.4839, "lng": 127.0163 },
+            { "name": "맥도날드 내곡점", "lat": 37.4646, "lng": 127.0494 },
+            { "name": "맥도날드 노원점", "lat": 37.6543, "lng": 127.0560 },
+            { "name": "맥도날드 논현역점", "lat": 37.5059, "lng": 127.0229 },
+            { "name": "맥도날드 대치점", "lat": 37.4996, "lng": 127.0601 },
+            { "name": "맥도날드 도곡역점", "lat": 37.4914, "lng": 127.0543 },
+            { "name": "맥도날드 동대문점", "lat": 37.5707, "lng": 127.0097 },
+            { "name": "맥도날드 동소문점", "lat": 37.5878, "lng": 127.0022 },
+            { "name": "맥도날드 동호점", "lat": 37.5587, "lng": 127.0039 },
+            { "name": "맥도날드 뚝섬유원지점", "lat": 37.5317, "lng": 127.0683 },
+            { "name": "맥도날드 마포점", "lat": 37.5458, "lng": 126.9497 },
+            { "name": "맥도날드 망원점", "lat": 37.5562, "lng": 126.9048 },
+            { "name": "맥도날드 명동점", "lat": 37.5627, "lng": 126.9837 },
+            { "name": "맥도날드 목동점", "lat": 37.5258, "lng": 126.8687 },
+            { "name": "맥도날드 미아점", "lat": 37.6253, "lng": 127.0247 },
+            { "name": "맥도날드 반포점", "lat": 37.5024, "lng": 126.9961 },
+            { "name": "맥도날드 방배점", "lat": 37.4867, "lng": 126.9912 },
+            { "name": "맥도날드 불광DT점", "lat": 37.6083, "lng": 126.9242 },
+            { "name": "맥도날드 불광점", "lat": 37.6083, "lng": 126.9242 },
+            { "name": "맥도날드 사당점", "lat": 37.4800, "lng": 126.9818 },
+            { "name": "맥도날드 삼성DT점", "lat": 37.5117, "lng": 127.0583 },
+            { "name": "맥도날드 삼성점", "lat": 37.5097, "lng": 127.0645 },
+            { "name": "맥도날드 상봉점", "lat": 37.5954, "lng": 127.0863 },
+            { "name": "맥도날드 서울대입구점", "lat": 37.4809, "lng": 126.9525 },
+            { "name": "맥도날드 서울역점", "lat": 37.5558, "lng": 126.9723 },
+            { "name": "맥도날드 서울역DT점", "lat": 37.5558, "lng": 126.9723 },
+            { "name": "맥도날드 서울시청점", "lat": 37.5654, "lng": 126.9779 },
+            { "name": "맥도날드 서초DT점", "lat": 37.4883, "lng": 127.0124 },
+            { "name": "맥도날드 서초점", "lat": 37.4883, "lng": 127.0124 },
+            { "name": "맥도날드 석계역점", "lat": 37.6166, "lng": 127.0658 },
+            { "name": "맥도날드 선릉점", "lat": 37.5049, "lng": 127.0494 },
+            { "name": "맥도날드 성산DT점", "lat": 37.5676, "lng": 126.9069 },
+            { "name": "맥도날드 성수점", "lat": 37.5441, "lng": 127.0435 },
+            { "name": "맥도날드 신림점", "lat": 37.4842, "lng": 126.9312 },
+            { "name": "맥도날드 신촌점", "lat": 37.5562, "lng": 126.9367 },
+            { "name": "맥도날드 압구정로점", "lat": 37.5255, "lng": 127.0371 },
+            { "name": "맥도날드 양재점", "lat": 37.4862, "lng": 127.0427 },
+            { "name": "맥도날드 여의도점", "lat": 37.5220, "lng": 126.9248 },
+            { "name": "맥도날드 역삼DT점", "lat": 37.5015, "lng": 127.0370 },
+            { "name": "맥도날드 역삼점", "lat": 37.5011, "lng": 127.0315 },
+            { "name": "맥도날드 연세병원점", "lat": 37.5630, "lng": 126.9392 },
+            { "name": "맥도날드 영동점", "lat": 37.5230, "lng": 127.0270 },
+            { "name": "맥도날드 오금DT점", "lat": 37.5015, "lng": 127.1332 },
+            { "name": "맥도날드 오목교점", "lat": 37.5218, "lng": 126.8778 },
+            { "name": "맥도날드 왕십리역점", "lat": 37.5610, "lng": 127.0366 },
+            { "name": "맥도날드 용산아이파크몰점", "lat": 37.5298, "lng": 126.9632 },
+            { "name": "맥도날드 용산점", "lat": 37.5342, "lng": 126.9678 },
+            { "name": "맥도날드 은평점", "lat": 37.6186, "lng": 126.9200 },
+            { "name": "맥도날드 응암점", "lat": 37.5878, "lng": 126.9298 },
+            { "name": "맥도날드 이태원점", "lat": 37.5345, "lng": 126.9934 },
+            { "name": "맥도날드 잠실롯데월드점", "lat": 37.5113, "lng": 127.0982 },
+            { "name": "맥도날드 잠실점", "lat": 37.5135, "lng": 127.0874 },
+            { "name": "맥도날드 잠실새내역점", "lat": 37.5103, "lng": 127.0863 },
+            { "name": "맥도날드 잠실역점", "lat": 37.5135, "lng": 127.0874 },
+            { "name": "맥도날드 장안점", "lat": 37.5615, "lng": 127.0718 },
+            { "name": "맥도날드 종각점", "lat": 37.5694, "lng": 126.9822 },
+            { "name": "맥도날드 종로2가점", "lat": 37.5694, "lng": 126.9822 },
+            { "name": "맥도날드 중화점", "lat": 37.5976, "lng": 127.0734 },
+            { "name": "맥도날드 청담점", "lat": 37.5255, "lng": 127.0416 },
+            { "name": "맥도날드 청량리점", "lat": 37.5794, "lng": 127.0423 },
+            { "name": "맥도날드 청량리역점", "lat": 37.5794, "lng": 127.0423 },
+            { "name": "맥도날드 코엑스점", "lat": 37.5135, "lng": 127.0583 },
+            { "name": "맥도날드 테헤란로점", "lat": 37.5028, "lng": 127.0374 },
+            { "name": "맥도날드 평촌점", "lat": 37.3979, "lng": 126.9575 },
+            { "name": "맥도날드 학동점", "lat": 37.5161, "lng": 127.0270 },
+            { "name": "맥도날드 한남점", "lat": 37.5321, "lng": 127.0006 },
+            { "name": "맥도날드 해방촌점", "lat": 37.5401, "lng": 126.9877 },
+            { "name": "맥도날드 행당점", "lat": 37.5615, "lng": 127.0255 },
+            { "name": "맥도날드 혜화점", "lat": 37.5824, "lng": 127.0009 },
+            { "name": "맥도날드 홍대점", "lat": 37.5574, "lng": 126.9248 },
+            { "name": "맥도날드 홍대2점", "lat": 37.5567, "lng": 126.9250 }
+        ];
+
+        // 5. 마커를 지도에 추가
+        mcDonaldsLocations.forEach(location => {
+            L.marker([location.lat, location.lng], { icon: mcDonaldsLogoIcon })
+                .addTo(map)
+                .bindPopup(`<h3>${location.name}</h3>`);
+        });
+
+        // --- 내 위치 표시 기능 수정 ---
+        // 'locate' 함수를 호출하여 현재 위치를 찾습니다.
+        map.locate({ setView: false, maxZoom: 16 });
+
+        // 'locationfound' 이벤트: 위치를 성공적으로 찾았을 때 실행됩니다.
+        map.on('locationfound', function(e) {
+            // 사용자 위치를 파란색 막대사탕 마커로 표시합니다. 팝업은 추가하지 않았습니다.
+            L.marker(e.latlng, { icon: userLocationIcon }).addTo(map);
+        });
+
+        // 'locationerror' 이벤트: 위치를 찾지 못했을 때 실행됩니다.
+        map.on('locationerror', function(e) {
+            console.error("위치 정보를 찾을 수 없습니다:", e.message);
+        });
+    </script>
+</body>
+</html>
